@@ -1,23 +1,21 @@
 # lita-youtube-me
 
-TODO: Add a description of the plugin.
+Replies with a video that matches a string.
 
 ## Installation
 
-Add lita-youtube-me to your Lita instance's Gemfile:
+Add lita-youtube to your Lita instance's Gemfile:
 
 ``` ruby
 gem "lita-youtube-me"
 ```
 
-
-## Configuration
-
-TODO: Describe any configuration attributes the plugin exposes.
-
 ## Usage
 
-TODO: Describe the plugin's features and how to use them.
+```
+@bot: youtube me soccer
+@bot: youtube soccer
+```
 
 ## License
 

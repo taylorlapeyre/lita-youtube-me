@@ -4,6 +4,9 @@ describe Lita::Handlers::Youtube, lita_handler: true do
   it { is_expected.to route_command("youtube me something") }
   it { is_expected.to route_command("youtube me something").to(:find_video) }
 
+  it { is_expected.to route_command("youtube something") }
+  it { is_expected.to route_command("youtube something").to(:find_video) }
+
   it "can find a youtube video with a query" do
     send_command("youtube me soccer")
     expect(replies.count).to eq 1

@@ -6,6 +6,7 @@ describe Lita::Handlers::Youtube, lita_handler: true do
 
   it "can find a youtube video with a query" do
     send_command("youtube me soccer")
+    expect(replies.count).to eq 1
     expect(replies.last).to_not be_nil
     expect(replies.last).to match(/youtube\.com/)
   end

@@ -12,11 +12,18 @@ gem "lita-youtube-me"
 
 ## Configuration
 
+This plugin requires an API key for the [YouTube Data API (v3)](https://developers.google.com/youtube/v3/).
+
+``` ruby
+Lita.configure do |config|
+  config.handlers.youtube_me.api_key = "FooBarBazLuhrmann"
+end
+```
+
 ### Optional attributes
 * `video_info` (boolean) - When set to `true`, Lita will return additional information (title, duration, etc.) about the video. Default: `false`
 * `detect_urls` (boolean) - When set to `true`, Lita will return additional information about any YouTube URLs it detects. Default: `false`
 
-### Example
 ``` ruby
 Lita.configure do |config|
   config.handlers.youtube_me.video_info = true

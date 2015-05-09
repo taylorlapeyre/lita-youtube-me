@@ -1,15 +1,17 @@
 require "date"
+require "iso8601"
 
 module Lita
   module Handlers
     class YoutubeMe < Handler
-      API_URL = "https://gdata.youtube.com/feeds/api/videos"
+      API_URL = "https://www.googleapis.com/youtube/v3"
 
+      config :api_key, type: String, required: true
       config :video_info, types: [TrueClass, FalseClass], default: false
       config :detect_urls, types: [TrueClass, FalseClass], default: false
 
       route(/^(?:youtube|yt)(?: me)?\s+(.*)/i, :find_video, command: true, help: {
-        "youtube (me) QUERY" => "Gets a youtube video."
+        "youtube (me) QUERY" => "Gets a YouTube video."
       })
       # Detect YouTube links in non-commands and display video info
       route(/\byoutube\.com\/watch\?v=([^?&#\s]+)/i, :display_info, command: false)
@@ -17,40 +19,52 @@ module Lita
 
       def find_video(response)
         query = response.matches[0][0]
-        http_response = http.get(API_URL,
+        http_response = http.get(
+          "#{API_URL}/search",
           q: query,
-          orderBy: "relevance",
-          "max-results" => 15,
-          alt: "json"
+          order: "relevance",
+          maxResults: 15,
+          part: "snippet",
+          key: config.api_key
         )
-        videos = MultiJson.load(http_response.body)["feed"]["entry"]
+        return if http_response.status != 200
+        videos = MultiJson.load(http_response.body)["items"]
         video = videos.sample
-        video["link"].each do |link|
-          if link["rel"] == "alternate" && link["type"] == "text/html"
-            response.reply link["href"].split("&").first
-          end
-        end
+        id = video["id"]["videoId"]
+        response.reply "https://www.youtube.com/watch?v=#{id}"
         if config.video_info
-          response.reply info(video)
+          response.reply info(id)
         end
       end
 
       def display_info(response)
         if config.detect_urls
           id = response.matches[0][0]
-          http_response = http.get("#{API_URL}/#{id}", alt: "json")
-          video = MultiJson.load(http_response.body)["entry"]
-          response.reply info(video)
+          info_string = info(id)
+          unless info_string.nil?
+            response.reply info_string
+          end
         end
       end
 
-      def info(video)
-        title = video["title"]["$t"]
-        uploader = video["author"][0]["name"]["$t"]
-        date = DateTime.iso8601(video["published"]["$t"]).strftime("%F")
+      def info(id)
+        http_response = http.get(
+          "#{API_URL}/videos",
+          id: id,
+          part: "contentDetails,snippet,statistics",
+          key: config.api_key
+        )
+        return nil if http_response.status != 200
+        videos = MultiJson.load(http_response.body)["items"]
+        return nil if videos.empty?
+        video = videos[0]
+        title = video["snippet"]["title"]
+        uploader = video["snippet"]["channelTitle"]
+        date = DateTime.iso8601(video["snippet"]["publishedAt"]).strftime("%F")
 
         # Format time, only show hours if necessary
-        sec = video["media$group"]["yt$duration"]["seconds"].to_i
+        duration = ISO8601::Duration.new(video["contentDetails"]["duration"])
+        sec = duration.to_seconds.to_i
         min = sec / 60
         hr = min / 60
         time = "%d:%02d" % [min, sec%60]
@@ -59,7 +73,7 @@ module Lita
         end
 
         # Abbreviate view count, based on http://stackoverflow.com/a/2693484
-        n = video["yt$statistics"]["viewCount"].to_i
+        n = video["statistics"]["viewCount"].to_i
         i = 0
         while n >= 1e3 do
           n /= 1e3
@@ -67,8 +81,10 @@ module Lita
         end
         views = "%.#{n.to_s.length>3?1:0}f%s" % [n.round(1), " kMBT"[i]]
 
-        # Calculate rating, accounting for YouTube's 1-5 score range
-        rating = "%.f" % [(video.fetch("gd$rating", {}).fetch("average", 1) - 1) / 4 * 100]
+        # Calculate rating percentage
+        likes = video["statistics"]["likeCount"].to_f
+        dislikes = video["statistics"]["dislikeCount"].to_f
+        rating = "%.f" % (likes / (likes + dislikes) * 100)
 
         "#{title} [#{time}] by #{uploader} on #{date} (#{views.strip} views, #{rating}% liked)"
       end

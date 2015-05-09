@@ -1,6 +1,10 @@
 require "spec_helper"
 
 describe Lita::Handlers::YoutubeMe, lita_handler: true do
+  before do
+    registry.config.handlers.youtube_me.api_key = ENV["YOUTUBE_KEY"]
+  end
+
   it { is_expected.to route_command("youtube me something") }
   it { is_expected.to route_command("youtube me something").to(:find_video) }
 
@@ -54,6 +58,25 @@ describe Lita::Handlers::YoutubeMe, lita_handler: true do
 
   it "does not display video info for detected YouTube URLs when the detect_urls config variable is false" do
     registry.config.handlers.youtube_me.detect_urls = false
+    send_message("https://www.youtube.com/watch?v=nG7RiygTwR4")
+    expect(replies.count).to eq 0
+  end
+
+  it "does not send a message when the detected YouTube URL does not lead to a valid video" do
+    registry.config.handlers.youtube_me.detect_urls = true
+    send_message("https://www.youtube.com/watch?v=foo")
+    expect(replies.count).to eq 0
+  end
+
+  it "does not return a video in response to a query when the API key is invalid" do
+    registry.config.handlers.youtube_me.api_key = "this key doesn't work"
+    send_command("youtube me soccer")
+    expect(replies.count).to eq 0
+  end
+
+  it "does not display video info for detected YouTube URLs when the API key is invalid" do
+    registry.config.handlers.youtube_me.detect_urls = true
+    registry.config.handlers.youtube_me.api_key = "this key doesn't work"
     send_message("https://www.youtube.com/watch?v=nG7RiygTwR4")
     expect(replies.count).to eq 0
   end

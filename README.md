@@ -23,11 +23,13 @@ end
 ### Optional attributes
 * `video_info` (boolean) - When set to `true`, Lita will return additional information (title, duration, etc.) about the video. Default: `false`
 * `detect_urls` (boolean) - When set to `true`, Lita will return additional information about any YouTube URLs it detects. Default: `false`
+* `top_result` (boolean) - When set to `true`, Lita will return the top result in response to a video search. Default: `false`, which returns a random result selected from the top 15.
 
 ``` ruby
 Lita.configure do |config|
   config.handlers.youtube_me.video_info = true
   config.handlers.youtube_me.detect_urls = true
+  config.handlers.youtube_me.top_result = true
 end
 ```
 

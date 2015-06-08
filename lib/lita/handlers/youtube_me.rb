@@ -9,6 +9,7 @@ module Lita
       config :api_key, type: String, required: true
       config :video_info, types: [TrueClass, FalseClass], default: false
       config :detect_urls, types: [TrueClass, FalseClass], default: false
+      config :top_result, types: [TrueClass, FalseClass], default: false
 
       route(/^(?:youtube|yt)(?: me)?\s+(.*)/i, :find_video, command: true, help: {
         "youtube (me) QUERY" => "Gets a YouTube video."
@@ -29,7 +30,7 @@ module Lita
         )
         return if http_response.status != 200
         videos = MultiJson.load(http_response.body)["items"].select { |v| v["id"].key?("videoId") }
-        video = videos.sample
+        video = config.top_result ? videos.first : videos.sample
         id = video["id"]["videoId"]
         response.reply "https://www.youtube.com/watch?v=#{id}"
         if config.video_info

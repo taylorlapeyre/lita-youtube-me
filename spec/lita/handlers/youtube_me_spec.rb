@@ -75,6 +75,12 @@ describe Lita::Handlers::YoutubeMe, lita_handler: true do
     expect(replies.count).to eq 0
   end
 
+  it "returns the top video in response to a query when the top_result config variable is true" do
+    registry.config.handlers.youtube_me.top_result = true
+    send_command("yt polica lay your cards out")
+    expect(replies.first).to match(/Rl03afAqeFQ/)
+  end
+
   it "does not return a video in response to a query when the API key is invalid" do
     registry.config.handlers.youtube_me.api_key = "this key doesn't work"
     send_command("youtube me soccer")

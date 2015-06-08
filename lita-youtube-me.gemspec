@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-youtube-me"
-  spec.version       = "0.0.4"
+  spec.version       = "0.0.5"
   spec.authors       = ["Taylor Lapeyre"]
   spec.email         = ["taylorlapeyre@gmail.com"]
   spec.description   = %q{A Lita handler that replies with a youtube URL when given a query.}

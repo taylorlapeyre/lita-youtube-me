@@ -30,6 +30,13 @@ describe Lita::Handlers::YoutubeMe, lita_handler: true do
     expect(replies.last).to match(/youtube\.com/)
   end
 
+  it "does not attempt to return a playlist" do
+    send_command("youtube babbletron birds")
+    expect(replies.count).to eq 1
+    expect(replies.last).to_not be_nil
+    expect(replies.last).not_to match(/^https:\/\/www\.youtube\.com\/watch\?v=$/)
+  end
+
   it "displays info for a requested video when the video_info config variable is true" do
     registry.config.handlers.youtube_me.video_info = true
     send_command("yt soccer")

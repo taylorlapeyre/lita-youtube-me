@@ -29,7 +29,7 @@ module Lita
           key: config.api_key
         )
         return if http_response.status != 200
-        videos = MultiJson.load(http_response.body)["items"]
+        videos = MultiJson.load(http_response.body)["items"].select { |v| v["id"].key?("videoId") }
         video = config.top_result ? videos.first : videos.sample
         id = video["id"]["videoId"]
         response.reply "https://www.youtube.com/watch?v=#{id}"

@@ -1,5 +1,6 @@
 require "date"
 require "uri"
+require "cgi"
 require "iso8601"
 
 module Lita
@@ -41,9 +42,8 @@ module Lita
 
       # The video id is found in the 'v' query parameter
       def extract_video_id(url_string)
-        query = URI(url_string).query
-        video_id_query = query.split('&').select { |fragment| fragment[0] == 'v' }.first
-        video_id_query.split('=')[1]
+        query = CGI.parse URI(url_string).query
+        query['v'].first
       end
 
       def display_info(response)

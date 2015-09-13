@@ -63,6 +63,12 @@ describe Lita::Handlers::YoutubeMe, lita_handler: true do
     expect(replies.first).to match(/10 minutes of DJ Mbenga saying Tacos \[10:02\] by RickFreeloader on 2011-09-12 \(\S+ views, \d+% liked\)/)
   end
 
+  it 'will respond with video info when given a url with multiple query params' do
+    registry.config.handlers.youtube_me.detect_urls = true
+    send_message("burrito burrito https://www.youtube.com/watch?t=81&v=wv7DfebpL7E")
+    expect(replies.first).to_not be_nil
+  end
+
   it "does not display video info for detected YouTube URLs when the detect_urls config variable is false" do
     registry.config.handlers.youtube_me.detect_urls = false
     send_message("https://www.youtube.com/watch?v=nG7RiygTwR4")

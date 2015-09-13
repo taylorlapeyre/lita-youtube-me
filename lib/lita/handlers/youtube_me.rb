@@ -1,4 +1,5 @@
 require "date"
+require "uri"
 require "iso8601"
 
 module Lita
@@ -15,8 +16,8 @@ module Lita
         "youtube (me) QUERY" => "Gets a YouTube video."
       })
       # Detect YouTube links in non-commands and display video info
-      route(/\byoutube\.com\/watch\?v=([^?&#\s]+)/i, :display_info, command: false)
-      route(/\byoutu\.be\/([^?&#\s]+)/i, :display_info, command: false)
+      route(/\b(youtube\.com\/watch\S+)\s*/i, :display_info, command: false)
+      route(/\b(youtu\.be\/\S+)\s*/i, :display_info, command: false)
 
       def find_video(response)
         query = response.matches[0][0]
@@ -38,9 +39,16 @@ module Lita
         end
       end
 
+      # The video id is found in the 'v' query parameter
+      def extract_video_id(url_string)
+        query = URI(url_string).query
+        video_id_query = query.split('&').select { |fragment| fragment[0] == 'v' }.first
+        video_id_query.split('=')[1]
+      end
+
       def display_info(response)
         if config.detect_urls
-          id = response.matches[0][0]
+          id = extract_video_id(response.matches[0][0])
           info_string = info(id)
           unless info_string.nil?
             response.reply info_string
